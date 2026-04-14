@@ -4,7 +4,6 @@
 
 ### 1. Create Environment
 ```
-bash
 conda create -n main-ds python=3.9
 ```
 
