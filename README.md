@@ -1,20 +1,26 @@
-# 🚴 Bike Sharing Data Analysis & Dashboard
+# 🚴 Bike Sharing Dashboard ✨
 
-## 📌 Deskripsi Proyek
-Proyek ini bertujuan untuk menganalisis pola penyewaan sepeda berdasarkan faktor cuaca dan jenis hari (hari kerja vs hari libur). Selain analisis eksploratif, proyek ini juga dilengkapi dengan dashboard interaktif menggunakan Streamlit untuk memvisualisasikan hasil analisis.
+## Setup Environment
+
+### 1. Create Environment
+```
+bash
+conda create -n main-ds python=3.9
 ```
 
-## 🎯 Tujuan Analisis
-- Mengetahui pengaruh kondisi cuaca terhadap jumlah penyewaan sepeda
-- Membandingkan jumlah penyewaan pada hari kerja dan hari libur
-- Menyajikan insight dalam bentuk visualisasi interaktif
+### 2. Activate Environment
 
----
+```
+conda activate main-ds
+```
 
-## 📊 Dataset
-Dataset yang digunakan berasal dari Bike Sharing Dataset, yang berisi informasi harian penyewaan sepeda.
+### 3. Install Dependencies
+```
+pip install -r requirements.txt
+```
 
-Fitur utama yang digunakan:
-- `cnt` → jumlah total penyewaan sepeda
-- `weather_label` → kondisi cuaca
-- `workingday` → status hari kerja atau libur
+## Run Streamlit App
+```
+streamlit run dashboard.py
+```
+
