@@ -2,8 +2,7 @@
 
 ## 📌 Deskripsi Proyek
 Proyek ini bertujuan untuk menganalisis pola penyewaan sepeda berdasarkan faktor cuaca dan jenis hari (hari kerja vs hari libur). Selain analisis eksploratif, proyek ini juga dilengkapi dengan dashboard interaktif menggunakan Streamlit untuk memvisualisasikan hasil analisis.
-
----
+```
 
 ## 🎯 Tujuan Analisis
 - Mengetahui pengaruh kondisi cuaca terhadap jumlah penyewaan sepeda
