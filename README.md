@@ -19,7 +19,3 @@ Fitur utama yang digunakan:
 - `cnt` → jumlah total penyewaan sepeda
 - `weather_label` → kondisi cuaca
 - `workingday` → status hari kerja atau libur
-
----
-
-## 📁 Struktur Folder
