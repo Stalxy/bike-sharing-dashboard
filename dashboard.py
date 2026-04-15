@@ -4,30 +4,72 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 # ======================
-# Load Data
+# CONFIG
+# ======================
+st.set_page_config(page_title="Bike Sharing Dashboard", layout="wide")
+sns.set_style("whitegrid")
+
+# ======================
+# LOAD DATA
 # ======================
 df = pd.read_csv("main_data.csv")
 
 # Convert date
 df['dteday'] = pd.to_datetime(df['dteday'])
 
+# Mapping weather 
+if 'weather_label' not in df.columns:
+    df['weather_label'] = df['weathersit'].map({
+        1: 'Cerah',
+        2: 'Berawan',
+        3: 'Hujan Ringan',
+        4: 'Hujan Lebat'
+    })
+    
+# Mapping season
+if 'season' in df.columns:
+    df['season_label'] = df['season'].map({
+        1: 'Spring',
+        2: 'Summer',
+        3: 'Fall',
+        4: 'Winter'
+    })
+else:
+    df['season_label'] = 'Unknown'
+
+# ======================
+# TITLE
+# ======================
 st.title("🚴 Bike Sharing Dashboard")
+st.markdown("Analisis penyewaan sepeda berdasarkan waktu dan kondisi cuaca.")
 
 # ======================
 # SIDEBAR FILTER
 # ======================
-st.sidebar.header("Filter Data")
+st.sidebar.header("🔍 Filter Data")
 
 # Filter tanggal
 start_date = st.sidebar.date_input("Tanggal Mulai", df['dteday'].min())
 end_date = st.sidebar.date_input("Tanggal Akhir", df['dteday'].max())
 
 # Filter cuaca
-weather_options = df['weather_label'].unique()
 selected_weather = st.sidebar.multiselect(
     "Pilih Cuaca",
-    options=weather_options,
-    default=weather_options
+    options=df['weather_label'].unique(),
+    default=df['weather_label'].unique()
+)
+
+# Filter season
+selected_season = st.sidebar.multiselect(
+    "Pilih Season",
+    options=df['season_label'].unique(),
+    default=df['season_label'].unique()
+)
+
+# Filter grafik
+chart_type = st.sidebar.selectbox(
+    "Pilih Jenis Grafik",
+    ["Pie Chart", "Bar Chart"]
 )
 
 # ======================
@@ -36,39 +78,69 @@ selected_weather = st.sidebar.multiselect(
 filtered_df = df[
     (df['dteday'] >= pd.to_datetime(start_date)) &
     (df['dteday'] <= pd.to_datetime(end_date)) &
-    (df['weather_label'].isin(selected_weather))
+    (df['weather_label'].isin(selected_weather)) &
+    (df['season_label'].isin(selected_season))
 ]
 
+# ======================
+# INFO DATA
+# ======================
+st.subheader("📊 Ringkasan Data")
+st.write("Jumlah data setelah filter:", filtered_df.shape[0])
 
 # ======================
 # VISUALISASI 1
-# Pengaruh Cuaca
 # ======================
-st.subheader("Pengaruh Cuaca terhadap Penyewaan")
+st.subheader("Penyewaan Berdasarkan Season")
 
-weather_avg = filtered_df.groupby('weather_label')['cnt'].mean().reset_index()
+season_avg = filtered_df.groupby('season_label')['cnt'].mean().reset_index()
 
 fig2, ax2 = plt.subplots()
-sns.barplot(data=weather_avg, x='weather_label', y='cnt', ax=ax2)
-ax2.set_title("Rata-rata Penyewaan Berdasarkan Cuaca")
+
+if chart_type == "Pie Chart":
+    ax2.pie(
+        season_avg['cnt'],
+        labels=season_avg['season_label'],
+        autopct='%1.1f%%'
+    )
+else:
+    sns.barplot(
+        data=season_avg,
+        x='season_label',
+        y='cnt',
+        palette='viridis',
+        ax=ax2
+    )
+
+ax2.set_title("Penyewaan Sepeda Berdasarkan Musim")
 
 st.pyplot(fig2)
 
 # ======================
 # VISUALISASI 2
-# Hari Kerja vs Libur
 # ======================
-st.subheader("Perbandingan Penyewaan: Hari Kerja vs Libur")
+st.subheader("Penyewaan: Hari Kerja vs Libur")
 
-workingday_avg = filtered_df.groupby('workingday')['cnt'].mean().reset_index()
-
-workingday_avg['workingday'] = workingday_avg['workingday'].map({
-    0: 'Libur',
-    1: 'Hari Kerja'
-})
+workingday_sum = filtered_df.groupby('workingday')['cnt'].sum()
+labels = ['Libur' if x == 0 else 'Hari Kerja' for x in workingday_sum.index]
 
 fig1, ax1 = plt.subplots()
-sns.barplot(data=workingday_avg, x='workingday', y='cnt', ax=ax1)
-ax1.set_title("Rata-rata Penyewaan Sepeda")
+
+if chart_type == "Pie Chart":
+    ax1.pie(
+        workingday_sum,
+        labels=labels,
+        autopct='%1.1f%%',
+        colors=['#FF9800', '#4CAF50']
+    )
+else:
+    sns.barplot(
+        x=labels,
+        y=workingday_sum.values,
+        palette=['#FF9800', '#4CAF50'],
+        ax=ax1
+    )
+
+ax1.set_title("Penyewaan Sepeda (Hari Kerja vs Libur)")
 
 st.pyplot(fig1)
