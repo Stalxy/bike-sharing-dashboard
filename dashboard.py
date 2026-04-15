@@ -4,77 +4,71 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 # ======================
-# CONFIG
+# Load Data
 # ======================
-st.set_page_config(page_title="Bike Sharing Dashboard", layout="wide")
+df = pd.read_csv("main_data.csv")
 
-st.title("🚴 Dashboard Bike Sharing")
+# Convert date
+df['dteday'] = pd.to_datetime(df['dteday'])
 
-# ======================
-# LOAD DATA
-# ======================
-@st.cache_data
-def load_data():
-    df = pd.read_csv("main_data.csv")
-    return df
-
-df = load_data()
+st.title("🚴 Bike Sharing Dashboard")
 
 # ======================
-# CLEAN DATA (kalau sudah clean bisa langsung pakai df)
+# SIDEBAR FILTER
 # ======================
-df_day_cleaned = df.copy()
+st.sidebar.header("Filter Data")
 
-# =========================================================
-# 1. PENGARUH CUACA TERHADAP PENYEWAAN SEPEDA (BARPLOT)
-# =========================================================
-st.subheader("🌦️ Pengaruh Cuaca terhadap Rata-rata Penyewaan Sepeda")
+# Filter tanggal
+start_date = st.sidebar.date_input("Tanggal Mulai", df['dteday'].min())
+end_date = st.sidebar.date_input("Tanggal Akhir", df['dteday'].max())
 
-weather_impact = (
-    df_day_cleaned.groupby('weather_label')['cnt']
-    .mean()
-    .reset_index()
+# Filter cuaca
+weather_options = df['weather_label'].unique()
+selected_weather = st.sidebar.multiselect(
+    "Pilih Cuaca",
+    options=weather_options,
+    default=weather_options
 )
 
-weather_impact_sorted = weather_impact.sort_values("cnt", ascending=False)
+# ======================
+# FILTER DATA
+# ======================
+filtered_df = df[
+    (df['dteday'] >= pd.to_datetime(start_date)) &
+    (df['dteday'] <= pd.to_datetime(end_date)) &
+    (df['weather_label'].isin(selected_weather))
+]
 
-fig1, ax1 = plt.subplots(figsize=(10, 6))
 
-sns.barplot(
-    x='cnt',
-    y='weather_label',
-    data=weather_impact_sorted,
-    hue='weather_label',
-    palette='viridis',
-    legend=False,
-    ax=ax1
-)
+# ======================
+# VISUALISASI 1
+# Pengaruh Cuaca
+# ======================
+st.subheader("Pengaruh Cuaca terhadap Penyewaan")
 
-ax1.set_title('Pengaruh Cuaca terhadap Rata-rata Penyewaan Sepeda', fontsize=14, fontweight='bold')
-ax1.set_xlabel('Rata-rata Jumlah Penyewaan Sepeda')
-ax1.set_ylabel('Kondisi Cuaca')
-ax1.grid(axis='x', linestyle='--', alpha=0.6)
+weather_avg = filtered_df.groupby('weather_label')['cnt'].mean().reset_index()
 
-st.pyplot(fig1)
-
-# =========================================================
-# 2. PERBANDINGAN HARI KERJA VS LIBUR (PIE CHART)
-# =========================================================
-st.subheader("📅 Perbandingan Penyewaan: Hari Kerja vs Hari Libur")
-
-avg_workingday = df_day_cleaned.groupby('workingday')['cnt'].mean()
-
-labels = ['Libur', 'Hari Kerja']
-
-fig2, ax2 = plt.subplots(figsize=(6, 6))
-
-ax2.pie(
-    avg_workingday,
-    labels=labels,
-    autopct='%1.1f%%',
-    colors=['lightcoral', 'skyblue']
-)
-
-ax2.set_title('Perbandingan Penyewaan Sepeda: Hari Kerja vs Hari Libur')
+fig2, ax2 = plt.subplots()
+sns.barplot(data=weather_avg, x='weather_label', y='cnt', ax=ax2)
+ax2.set_title("Rata-rata Penyewaan Berdasarkan Cuaca")
 
 st.pyplot(fig2)
+
+# ======================
+# VISUALISASI 2
+# Hari Kerja vs Libur
+# ======================
+st.subheader("Perbandingan Penyewaan: Hari Kerja vs Libur")
+
+workingday_avg = filtered_df.groupby('workingday')['cnt'].mean().reset_index()
+
+workingday_avg['workingday'] = workingday_avg['workingday'].map({
+    0: 'Libur',
+    1: 'Hari Kerja'
+})
+
+fig1, ax1 = plt.subplots()
+sns.barplot(data=workingday_avg, x='workingday', y='cnt', ax=ax1)
+ax1.set_title("Rata-rata Penyewaan Sepeda")
+
+st.pyplot(fig1)
