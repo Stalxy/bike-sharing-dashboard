@@ -59,13 +59,6 @@ selected_weather = st.sidebar.multiselect(
     default=df['weather_label'].unique()
 )
 
-# Filter season
-selected_season = st.sidebar.multiselect(
-    "Pilih Season",
-    options=df['season_label'].unique(),
-    default=df['season_label'].unique()
-)
-
 # Filter grafik
 chart_type = st.sidebar.selectbox(
     "Pilih Jenis Grafik",
@@ -78,8 +71,7 @@ chart_type = st.sidebar.selectbox(
 filtered_df = df[
     (df['dteday'] >= pd.to_datetime(start_date)) &
     (df['dteday'] <= pd.to_datetime(end_date)) &
-    (df['weather_label'].isin(selected_weather)) &
-    (df['season_label'].isin(selected_season))
+    (df['weather_label'].isin(selected_weather)) 
 ]
 
 # ======================
@@ -116,6 +108,9 @@ else:
         palette='viridis',
         ax=ax
     )
+
+    ax.set_xlabel("Rata-rata Jumlah Penyewaan Sepeda")
+    ax.set_ylabel("Kondisi Cuaca")
 
 ax.set_title("Rata-rata Penyewaan Sepeda Berdasarkan Cuaca (2011–2012)")
 
