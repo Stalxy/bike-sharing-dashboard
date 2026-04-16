@@ -91,44 +91,54 @@ st.write("Jumlah data setelah filter:", filtered_df.shape[0])
 # ======================
 # VISUALISASI 1
 # ======================
-st.subheader("Penyewaan Berdasarkan Season")
+st.subheader("Pengaruh Cuaca terhadap Penyewaan Sepeda")
 
-season_avg = filtered_df.groupby('season_label')['cnt'].mean().reset_index()
+weather_avg = (
+    filtered_df.groupby('weather_label')['cnt']
+    .mean()
+    .reset_index()
+    .sort_values(by='cnt', ascending=False)
+)
 
-fig2, ax2 = plt.subplots()
+fig, ax = plt.subplots()
 
 if chart_type == "Pie Chart":
-    ax2.pie(
-        season_avg['cnt'],
-        labels=season_avg['season_label'],
+    ax.pie(
+        weather_avg['cnt'],
+        labels=weather_avg['weather_label'],
         autopct='%1.1f%%'
     )
 else:
     sns.barplot(
-        data=season_avg,
-        x='season_label',
-        y='cnt',
+        data=weather_avg,
+        x='cnt',
+        y='weather_label',
         palette='viridis',
-        ax=ax2
+        ax=ax
     )
 
-ax2.set_title("Penyewaan Sepeda Berdasarkan Musim")
+ax.set_title("Rata-rata Penyewaan Sepeda Berdasarkan Cuaca (2011–2012)")
 
-st.pyplot(fig2)
+st.pyplot(fig)
 
 # ======================
 # VISUALISASI 2
 # ======================
 st.subheader("Penyewaan: Hari Kerja vs Libur")
 
-workingday_sum = filtered_df.groupby('workingday')['cnt'].sum()
-labels = ['Libur' if x == 0 else 'Hari Kerja' for x in workingday_sum.index]
+workingday_avg = (
+    filtered_df.groupby('workingday')['cnt']
+    .mean()
+    .reset_index()
+)
 
-fig1, ax1 = plt.subplots()
+labels = ['Libur' if x == 0 else 'Hari Kerja' for x in workingday_avg['workingday']]
+
+fig, ax = plt.subplots()
 
 if chart_type == "Pie Chart":
-    ax1.pie(
-        workingday_sum,
+    ax.pie(
+        workingday_avg['cnt'],
         labels=labels,
         autopct='%1.1f%%',
         colors=['#FF9800', '#4CAF50']
@@ -136,11 +146,11 @@ if chart_type == "Pie Chart":
 else:
     sns.barplot(
         x=labels,
-        y=workingday_sum.values,
+        y=workingday_avg['cnt'],
         palette=['#FF9800', '#4CAF50'],
-        ax=ax1
+        ax=ax
     )
 
-ax1.set_title("Penyewaan Sepeda (Hari Kerja vs Libur)")
+ax.set_title("Rata-rata Penyewaan Sepeda: Hari Kerja vs Libur")
 
-st.pyplot(fig1)
+st.pyplot(fig)
